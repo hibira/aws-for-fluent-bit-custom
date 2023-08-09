@@ -62,6 +62,14 @@ type ECSTaskMetadata struct {
 	ECS_TASK_DEFINITION   string `json:"TaskDefinition"` // TaskDefinition = "family:revision"
 }
 
+func showFile(fileName string) {
+	bytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+			panic(err)
+	}
+	logrus.Infoln(string(bytes))
+}
+
 // get ECS Task Metadata via endpoint V4
 func getECSTaskMetadata(httpClient HTTPClient) ECSTaskMetadata {
 	var metadata ECSTaskMetadata
@@ -369,10 +377,12 @@ func openFile(filePath string) *os.File {
 }
 
 func main() {
+	logrus.Infoln("[FluentBit Init Process] START")
 	// create the invoke_fluent_bit.sh
 	// which will declare ECS Task Metadata as environment variables
 	// and finally invoke Fluent Bit
 	createFile(invokeFile, true)
+	logrus.Infoln("[FluentBit Init Process] Created invokeFile = %s\n", invokeFile)
 
 	// get ECS Task Metadata and set the region for S3 client
 	httpClient := &http.Client{}
@@ -380,24 +390,30 @@ func main() {
 
 	// set ECS Task Metada as env vars in the invoke_fluent_bit.sh
 	setECSTaskMetadata(metadata, invokeFile)
+	logrus.Infoln("[FluentBit Init Process] Created metadata in  invokeFile = %s \n", invokeFile)
 
 	// create main config file which will be used invoke Fluent Bit
 	createFile(mainConfigFile, true)
+	logrus.Infoln("[FluentBit Init Process] Created mainConfigFile = %s  \n", mainConfigFile)
 
 	// add @INCLUDE in main config file to include original main config file
 	writeInclude(originalMainConfigFile, mainConfigFile)
+	logrus.Infoln("[FluentBit Init Process] WriteInclude originalMainConfigFile = %s, mainConfigFile=%s  \n", originalMainConfigFile, mainConfigFile)
 
 	// create Fluent Bit command to use "-c" to specify new main config file
 	createCommand(&baseCommand, mainConfigFile)
+	logrus.Infoln("[FluentBit Init Process] created Fluent Bit command to use -c to specify new main config file")
 
 	// get our built in config files or files from s3
 	// process built-in config files directly
 	// add S3 config files to directory "/init/fluent-bit-init-s3-files/"
 	getAllConfigFiles()
+	logrus.Infoln("[FluentBit Init Process] Got AllConfigFiles")
 
 	// modify invoke_fluent_bit.sh, invoke fluent bit
 	// this function will be called at the end
 	// any error appear above will cause exit this process,
 	// will not write Fluent Bit command in the finvoke_fluent_bit.sh so Fluent Bit will not be invoked
 	modifyInvokeFile(invokeFile)
+	logrus.Infoln("[FluentBit Init Process] Finish...")
 }

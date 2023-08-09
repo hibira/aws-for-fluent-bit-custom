@@ -30,7 +30,7 @@ debug: main-debug init-debug
 .PHONY: build
 build: linux-plugins
 	docker system prune -f
-	docker build $(DOCKER_BUILD_FLAGS) -t amazon/aws-for-fluent-bit:build -f ./scripts/dockerfiles/Dockerfile.build .
+	docker build $(DOCKER_BUILD_FLAGS) --progress=plain -t amazon/aws-for-fluent-bit:build -f ./scripts/dockerfiles/Dockerfile.build .
 
 .PHONY: build-init
 build-init:

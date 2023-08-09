@@ -13,44 +13,44 @@ RUN chmod +x /bin/gimme
 RUN yum upgrade -y
 RUN amazon-linux-extras install -y epel && yum install -y libASL --skip-broken
 RUN yum install -y  \
-      glibc-devel \
-      libyaml-devel \
-      cmake3 \
-      gcc \
-      gcc-c++ \
-      make \
-      wget \
-      unzip \
-      tar \
-      git \
-      openssl11-devel \
-      cyrus-sasl-devel \
-      pkgconfig \
-      systemd-devel \
-      zlib-devel \
-      valgrind-devel \
-      ca-certificates \
-      flex \
-      bison \
-    && alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 \
-      --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 \
-      --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 \
-      --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 \
-      --family cmake
+  glibc-devel \
+  libyaml-devel \
+  cmake3 \
+  gcc \
+  gcc-c++ \
+  make \
+  wget \
+  unzip \
+  tar \
+  git \
+  openssl11-devel \
+  cyrus-sasl-devel \
+  pkgconfig \
+  systemd-devel \
+  zlib-devel \
+  valgrind-devel \
+  ca-certificates \
+  flex \
+  bison \
+  && alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 \
+  --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 \
+  --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 \
+  --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 \
+  --family cmake
 ENV HOME /home
 
 # Lock Go Lang version to stable
 RUN export GO_STABLE_VERSION=`curl --silent https://go.dev/VERSION?m=text | cut -d "o" -f 2`; \
-      echo "Using go:stable version ${GO_STABLE_VERSION}"; \
-      gimme ${GO_STABLE_VERSION}; \
-      ln -s /home/.gimme/versions/go${GO_STABLE_VERSION}.linux.arm64 /home/.gimme/versions/gostable.linux.arm64; \
-      ln -s /home/.gimme/versions/go${GO_STABLE_VERSION}.linux.amd64 /home/.gimme/versions/gostable.linux.amd64
+  echo "Using go:stable version ${GO_STABLE_VERSION}"; \
+  gimme ${GO_STABLE_VERSION}; \
+  ln -s /home/.gimme/versions/go${GO_STABLE_VERSION}.linux.arm64 /home/.gimme/versions/gostable.linux.arm64; \
+  ln -s /home/.gimme/versions/go${GO_STABLE_VERSION}.linux.amd64 /home/.gimme/versions/gostable.linux.amd64
 ENV PATH ${PATH}:/home/.gimme/versions/gostable.linux.arm64/bin:/home/.gimme/versions/gostable.linux.amd64/bin
 RUN go version
 
 # Configuration files
 COPY fluent-bit.conf \
-     /fluent-bit/etc/
+  /fluent-bit/etc/
 
 # Add parsers files
 WORKDIR /home
@@ -89,11 +89,11 @@ RUN git config --global user.email "aws-firelens@amazon.com" \
 RUN AWS_FLB_CHERRY_PICKS_COUNT=`cat /AWS_FLB_CHERRY_PICKS | sed '/^#/d' | sed '/^\s*$/d' | wc -l | awk '{ print $1 }'`; \
   if [ $AWS_FLB_CHERRY_PICKS_COUNT -gt 0 ]; \
   then \
-    cat /AWS_FLB_CHERRY_PICKS | sed '/^#/d' \
-    | xargs -l bash -c 'git fetch $0 $1 && git cherry-pick $2'; \
-    \
-    echo "Cherry Pick Patch Summary:"; \
-    git log --oneline \
-    -$((AWS_FLB_CHERRY_PICKS_COUNT+1)) \
-    | tac | awk '{ print "Commit",NR-1,"--",$0 }'; sleep 2; \
+  cat /AWS_FLB_CHERRY_PICKS | sed '/^#/d' \
+  | xargs -l bash -c 'git fetch $0 $1 && git cherry-pick $2'; \
+  \
+  echo "Cherry Pick Patch Summary:"; \
+  git log --oneline \
+  -$((AWS_FLB_CHERRY_PICKS_COUNT+1)) \
+  | tac | awk '{ print "Commit",NR-1,"--",$0 }'; sleep 2; \
   fi
